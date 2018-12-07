@@ -37,6 +37,7 @@ DATA.FILE     <- "facebook.csv"
 # -- Read
 
 X <- read.csv(file.path(DATA.REL.PATH,DATA.FILE));
+X <- X[, colSums(X != 0) > 0]
 X <- t(X);
 
 # -- Center + Normalize
