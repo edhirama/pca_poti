@@ -73,7 +73,12 @@ if(file.exists(file.path(OUTPUT.PATH,OUTPUT.FILE.FIG))){
 
 # -- Read
 
+<<<<<<< HEAD
 X <- read.csv(file.path(INPUT.PATH,INPUT.FILE));
+=======
+X <- read.csv(file.path(DATA.REL.PATH,DATA.FILE));
+X <- X[, colSums(X != 0) > 0]
+>>>>>>> 7f2c5d7503438bccfc7ba24cae36007141bb0dd2
 X <- t(X);
 
 # -- Separate target variable
@@ -120,6 +125,7 @@ eigen.val <- diag(svd$S);
 eigen.val[is.na(eigen.val)] <- 0;
 
 # ----------------------------------------
+<<<<<<< HEAD
 # -- CPV | Cumulative Variance -----------
 # ----------------------------------------
 
@@ -173,4 +179,22 @@ theme_minimal() +
 theme(legend.position = c(0.9, 0.325)) +
 theme(legend.title=element_blank())
 ggsave(paste0(OUTPUT.PATH,OUTPUT.FILE.FIG),width = 5,height = 5);
+=======
+# -- Comparing ---------------------------
+# ----------------------------------------
+
+## R pca
+X.pca <- prcomp(X, center = TRUE, scale. = TRUE)
+
+## these two were supposed to be the same
+U[1:5, 1:5]
+X.pca$rotation[1:5, 1:5]
+
+
+## plotting svd and pca two principal components
+plot(U[, 1], U[, 2], main = "SVD", xlab = "U1", ylab = "U2")
+
+plot(X.pca$x[, 1], X.pca$x[, 2], main = "PCA", xlab = "PC1", ylab = "PC2")
+## The plots are similar but mirrored.
+>>>>>>> 7f2c5d7503438bccfc7ba24cae36007141bb0dd2
 
