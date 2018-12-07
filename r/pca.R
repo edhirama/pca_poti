@@ -78,15 +78,20 @@ S <- svd$S;
 V <- svd$V;
 
 # ----------------------------------------
-# -- Plotting ----------------------------
+# -- Comparing ---------------------------
 # ----------------------------------------
 
-
-plot(U[, 1], U[, 2], col = group, main = "SVD", xlab = "U1", ylab = "U2")
+## R pca
 X.pca <- prcomp(X, center = TRUE, scale. = TRUE)
-XView(X.pca)
 
-plot(X.pca$x[, 2], X.pca$x[, 1], main = "PCA", xlab = "PC1", ylab = "PC2")
+## these two were supposed to be the same
+U[1:5, 1:5]
+X.pca$rotation[1:5, 1:5]
 
-plot(sv$d^2/sum(sv$d^2), xlim = c(0, 15), type = "b", pch = 16, xlab = "principal components", 
-     ylab = "variance explained")
+
+## plotting svd and pca two principal components
+plot(U[, 1], U[, 2], main = "SVD", xlab = "U1", ylab = "U2")
+
+plot(X.pca$x[, 1], X.pca$x[, 2], main = "PCA", xlab = "PC1", ylab = "PC2")
+## The plots are similar but mirrored.
+
