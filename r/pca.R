@@ -77,5 +77,16 @@ U <- svd$U;
 S <- svd$S;
 V <- svd$V;
 
+# ----------------------------------------
+# -- Plotting ----------------------------
+# ----------------------------------------
 
 
+plot(U[, 1], U[, 2], col = group, main = "SVD", xlab = "U1", ylab = "U2")
+X.pca <- prcomp(X, center = TRUE, scale. = TRUE)
+XView(X.pca)
+
+plot(X.pca$x[, 2], X.pca$x[, 1], main = "PCA", xlab = "PC1", ylab = "PC2")
+
+plot(sv$d^2/sum(sv$d^2), xlim = c(0, 15), type = "b", pch = 16, xlab = "principal components", 
+     ylab = "variance explained")
