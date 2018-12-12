@@ -34,13 +34,13 @@ if (!require("reshape2")) {
 #INPUT.FILE.NAME <- "facebook"
 #INPUT.FILE.NAME <- "wine_red"
 #INPUT.FILE.NAME <- "wine_white"
-INPUT.FILE.NAME <- "superconductor"
+#INPUT.FILE.NAME <- "superconductor"
+INPUT.FILE.NAME <- "residential"
 
 INPUT.PATH <- "../data/input/"
 INPUT.FILE <- paste0(INPUT.FILE.NAME,".csv")
 
 OUTPUT.PATH <- "../data/output/"
-OUTPUT.FILE.COV <- paste0(INPUT.FILE.NAME,"_covariance.csv");
 OUTPUT.FILE.CPV <- paste0(INPUT.FILE.NAME,"_pca.png");
 OUTPUT.FILE.BIP <- paste0(INPUT.FILE.NAME,"_biplot.png");
 
@@ -92,7 +92,6 @@ for (i in 1:nrow(X)) {
 # ----------------------------------------
 
 Sx <- (X %*% t(X)) / (ncol(X) - 1);
-write.csv(x = Sx,file = file.path(OUTPUT.PATH,OUTPUT.FILE.COV))
 
 # ----------------------------------------
 # -- Eigenvalues and Eigenvectors --------
