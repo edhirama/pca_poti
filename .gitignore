@@ -5,3 +5,5 @@ R.Rproj
 
 *.url
 *.pdf
+
+data/output/.csv
