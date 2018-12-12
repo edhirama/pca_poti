@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# -- @head: MECAI | MAI5002 | Logistic Regression RMSE Comparing ---------------
+# -- @head: MECAI | MAI5002 | SVD Execution Time -----------------------------
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
@@ -13,18 +13,17 @@ cat("\014")
 # -- Variable ------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-#INPUT.FILE.NAME <- "dataset_lls_rmse"
-INPUT.FILE.NAME <- "dataset_pca_rmse"
-
 INPUT.PATH <- "../data/input/"
-INPUT.FILE <- paste0(INPUT.FILE.NAME,".csv")
+INPUT.FILE <- "svd_runtime.matlab.csv"
 
 OUTPUT.PATH <- "../data/output/"
-OUTPUT.FILE <- paste0(INPUT.FILE.NAME,".png")
+OUTPUT.FILE <- "svd_runtime.png"
 
 # ------------------------------------------------------------------------------
 # -- Library -------------------------------------------------------------------
 # ------------------------------------------------------------------------------
+
+source("svd.R")
 
 if (!require("ggplot2")) {
   
@@ -36,23 +35,30 @@ if (!require("ggplot2")) {
 # -- Main ----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-# ----------------------------------------
-# -- Read data ---------------------------
-# ----------------------------------------
-
-data <- read.csv(file.path(INPUT.PATH,INPUT.FILE));
+set.seed(123)
 
 # ----------------------------------------
-# -- Plot --------------------------------
+# -- Runtime -----------------------------
 # ----------------------------------------
 
-ggplot(data = as.data.frame(data), aes(x = cpv, y = value, col = dataset)) +
-geom_point(size=3) + 
-geom_line(size=1) + 
-labs(title = "Principal Component Analysis | Logistic Regression", subtitle = "Datasets RMSE relative difference from RMSE with CPV = 100%", y="RMSE difference (%)", x="Explained Variance (%)") +
-scale_colour_manual(values=c('#8c43d6','#b1d643','#d64343','#d643d6','#42B3D5')) +
-theme_minimal() +
-theme(legend.position="bottom") +
-theme(legend.title=element_blank()) +
-ggsave(paste0(OUTPUT.PATH,OUTPUT.FILE),width = 5,height = 5);
+matrix.size <- seq(from = 5, to = 100, by = 5);
+svd.runtime <- matrix(0, nrow = length(matrix.size), ncol = 2);
+
+for (i in 1:length(matrix.size)) {
   
+  svd.runtime[i,1] <- matrix.size[i];
+  
+  for (j in 1:10) {
+    
+    random.matrix <- replicate(matrix.size[i], rnorm(matrix.size[i]));
+    runtime.start <- Sys.time();
+    SVD(cov(random.matrix), 1.e-5);
+    svd.runtime[i,2] <- svd.runtime[i,2] + as.numeric(difftime(time1 = Sys.time(), time2 = runtime.start, units = "secs"));
+    
+  }
+  
+  svd.runtime[i,2] <- 0.1 * svd.runtime[i,2];
+  
+}
+
+colnames(svd.runtime) <- c("size","runtime");
