@@ -31,15 +31,18 @@ if (!require("reshape2")) {
 # -- Variable ------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-CPV <- 0.7;
+#INPUT.FILE.NAME <- "facebook"
+#INPUT.FILE.NAME <- "wine_red"
+#INPUT.FILE.NAME <- "wine_white"
+INPUT.FILE.NAME <- "superconductor"
 
 INPUT.PATH <- "../data/input/"
-INPUT.FILE <- "facebook.csv"
+INPUT.FILE <- paste0(INPUT.FILE.NAME,".csv")
 
 OUTPUT.PATH <- "../data/output/"
-OUTPUT.FILE.COV <- "covariance.csv"
-OUTPUT.FILE.PCA <- paste0("pca_", paste0(CPV,".csv"));
-OUTPUT.FILE.FIG <- paste0("pca_", paste0(CPV,".png"));
+OUTPUT.FILE.COV <- paste0(INPUT.FILE.NAME,"_covariance.csv");
+OUTPUT.FILE.CPV <- paste0(INPUT.FILE.NAME,"_pca.png");
+OUTPUT.FILE.BIP <- paste0(INPUT.FILE.NAME,"_biplot.png");
 
 # ------------------------------------------------------------------------------
 # -- Function ------------------------------------------------------------------
@@ -48,24 +51,6 @@ OUTPUT.FILE.FIG <- paste0("pca_", paste0(CPV,".png"));
 # ------------------------------------------------------------------------------
 # -- Main ----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-
-if(file.exists(file.path(OUTPUT.PATH,OUTPUT.FILE.COV))){
-  
-  file.remove(file.path(OUTPUT.PATH,OUTPUT.FILE.COV))
-  
-}
-
-if(file.exists(file.path(OUTPUT.PATH,OUTPUT.FILE.PCA))){
-  
-  file.remove(file.path(OUTPUT.PATH,OUTPUT.FILE.PCA))
-  
-}
-
-if(file.exists(file.path(OUTPUT.PATH,OUTPUT.FILE.FIG))){
-  
-  file.remove(file.path(OUTPUT.PATH,OUTPUT.FILE.FIG))
-  
-}
 
 # ----------------------------------------
 # -- Data --------------------------------
@@ -123,32 +108,64 @@ eigen.val[is.na(eigen.val)] <- 0;
 # -- CPV | Cumulative Variance -----------
 # ----------------------------------------
 
-CPV.sum <- 0;
+CPV <- c(5:9)*0.1;
+CPV.k <- numeric(length = length(CPV));
 
-for (k in 1:length(eigen.val)) {
+for (i in 1:length(CPV)) {
   
-  CPV.sum <- sum(eigen.val[1:k]) / sum(eigen.val);
+  CPV.sum <- 0;
   
-  if (CPV.sum > CPV) {
+  for (k in 1:length(eigen.val)) {
     
-    break;
+    CPV.sum <- sum(eigen.val[1:k]) / sum(eigen.val);
     
+    if (CPV.sum > CPV[i]) {
+      
+      break;
+      
+    }
   }
+  
+  CPV.k[i] <- k;
+  
 }
 
 # ----------------------------------------
 # --  k principal components features ----
 # ----------------------------------------
 
-Y <- matrix(0, nrow = k, ncol = ncol(X));
-
-for (i in 1:k) {
+for (i in 1:length(CPV)) {
   
-  Y[i,] <- eigen.vec[,i] %*% X;
+  Y <- t(eigen.vec[,1:CPV.k[i]]) %*% X;
+  
+  OUTPUT.FILE.PCA <- paste0(INPUT.FILE.NAME,(paste0("_pca_", paste0(CPV[i],".csv"))));
+  write.csv(x = cbind(t(Y),target),file = file.path(OUTPUT.PATH,OUTPUT.FILE.PCA));
   
 }
 
-write.csv(x = cbind(t(Y),target),file = file.path(OUTPUT.PATH,OUTPUT.FILE.PCA));
+# ----------------------------------------
+# --  Sample contribution on PC1 and PC2 -
+# ----------------------------------------
+
+C <- matrix(0, nrow = ncol(X), ncol = 2);
+
+for (i in 1:ncol(C)) {
+  
+  for (j in 1:nrow(C)) {
+    
+    C[j,i] <- (t(eigen.vec[,i]) %*% X[,j]) / eigen.val[i];
+    
+  }
+}
+
+# ----------------------------------------
+# --  Feature loadings on PC1 and PC2 ----
+# ----------------------------------------
+
+L <- matrix(0, nrow = nrow(X), ncol = 2);
+L <- cbind(eigen.vec[,1] * sqrt(eigen.val[1]), eigen.vec[,2] * sqrt(eigen.val[2]));
+
+rownames(L) <- rownames(X);
 
 # ----------------------------------------
 # -- Plot --------------------------------
@@ -158,19 +175,47 @@ write.csv(x = cbind(t(Y),target),file = file.path(OUTPUT.PATH,OUTPUT.FILE.PCA));
 
 plot.matrix <- cbind.data.frame((eigen.val/max(eigen.val)), cumsum(eigen.val/sum(eigen.val)), 1:length(eigen.val));
 colnames(plot.matrix) <- c("Relative","Cumulative","PC")
-
 plot.matrix <- melt(plot.matrix, id.vars = "PC")
 colnames(plot.matrix)[2] <- "EV";
 
-ggplot(data = plot.matrix, aes(x = PC, y = value, col = EV)) +
+p.pca <- ggplot(data = plot.matrix, aes(x = PC, y = value, col = EV)) +
 geom_point(size=2) +
 geom_line(linetype="dashed",size=0.5) +
-geom_line(aes(y = CPV), linetype="dashed",size=0.75, color="#d64343") +
-labs(title = paste0("Principal Component Analysis | ",INPUT.FILE), subtitle = paste0("CPV of ",paste0(CPV,paste0(" resulted in ", paste0(k, " principal components.")))), y="Explained Variance", x="Principal Components") +
-annotate("text", x = 45, y = (CPV + 0.025), label = paste0("CPV = ", CPV), color="#d64343", size = 4) +
+labs(title = paste0("Principal Component Analysis | ",INPUT.FILE), subtitle = "k principal components by CPV.", y="Explained Variance", x="Principal Components") +
 scale_colour_manual(values=c("#42B3D5", "#b1d643")) +
 theme_minimal() +
 theme(legend.position = c(0.9, 0.325)) +
 theme(legend.title=element_blank())
-ggsave(paste0(OUTPUT.PATH,OUTPUT.FILE.FIG),width = 5,height = 5);
+
+for (i in 1:length(CPV)) {
+  
+  p.pca <- p.pca + geom_line(y = CPV[i], linetype="dashed",size=0.5, color="#d64343");
+  p.pca <- p.pca + annotate("text", x = 0.85*nrow(X), y = (CPV[i] + 0.025), label = paste0("CPV = ", paste0(CPV[i], paste0(" | k = ", CPV.k[i]))), color="#d64343", size = 4);
+  
+}
+ 
+print(p.pca);
+ggsave(paste0(OUTPUT.PATH,OUTPUT.FILE.CPV),width = 5,height = 5);
+
+# -- PCA | Biplot
+
+C <- data.frame(C);
+colnames(C) <- c("PC1", "PC2");
+
+p.bip <- ggplot(data = C, aes(x = PC1, y = PC2)) +
+geom_point(shape = 21, colour = "black", fill = "#42B3D5", size = 2, stroke = 0.5) + 
+labs(title = paste0("Principal Component Analysis | ",INPUT.FILE), subtitle = "Dataset projected on PC1 and PC2.", y=paste0("PC2 (",paste0(round(100*eigen.val[2] / sum(eigen.val), digits = 2),"% of explained variance)")), x=paste0("PC1 (",paste0(round(100*eigen.val[1] / sum(eigen.val), digits = 2),"% of explained variance)"))) +
+theme_minimal();
+
+for (i in 1:nrow(L)) {
+  
+  p.bip <- p.bip + geom_segment(x = 0, xend = L[i,1], y = 0, yend = L[i,2], linejoin = "mitre", lineend = "round", size=0.5, color = "#d64343", arrow=arrow(length = unit(0.08,"inches")))
+  p.bip <- p.bip + geom_point(x = L[i,1], y = L[i,2], shape = 21, colour = "black", fill = "#d64343", size = 4, stroke = 0.5)
+  p.bip <- p.bip + annotate("text", x = L[i,1], y = L[i,2], label = substr(rownames(L)[i], start = (nchar(rownames(L)[i]) - 1), stop = 1000000L), size = 2);
+  
+}
+
+print(p.bip)
+ggsave(paste0(OUTPUT.PATH,OUTPUT.FILE.BIP),width = 5,height = 5);
+
 
