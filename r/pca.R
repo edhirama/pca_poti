@@ -31,11 +31,11 @@ if (!require("reshape2")) {
 # -- Variable ------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-#INPUT.FILE.NAME <- "facebook"
+INPUT.FILE.NAME <- "facebook"
 #INPUT.FILE.NAME <- "wine_red"
 #INPUT.FILE.NAME <- "wine_white"
 #INPUT.FILE.NAME <- "superconductor"
-INPUT.FILE.NAME <- "residential"
+#INPUT.FILE.NAME <- "residential"
 
 INPUT.PATH <- "../data/input/"
 INPUT.FILE <- paste0(INPUT.FILE.NAME,".csv")
@@ -43,10 +43,6 @@ INPUT.FILE <- paste0(INPUT.FILE.NAME,".csv")
 OUTPUT.PATH <- "../data/output/"
 OUTPUT.FILE.CPV <- paste0(INPUT.FILE.NAME,"_pca.png");
 OUTPUT.FILE.BIP <- paste0(INPUT.FILE.NAME,"_biplot.png");
-
-# ------------------------------------------------------------------------------
-# -- Function ------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
 # -- Main ----------------------------------------------------------------------
@@ -97,7 +93,7 @@ Sx <- (X %*% t(X)) / (ncol(X) - 1);
 # -- Eigenvalues and Eigenvectors --------
 # ----------------------------------------
 
-svd <- SVD(Sx, 1.e-5);
+svd <- SVD.Jacobi(Sx, 1.e-5);
 
 eigen.vec <- svd$U;
 eigen.val <- diag(svd$S);

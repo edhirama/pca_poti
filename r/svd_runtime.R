@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# -- @head: MECAI | MAI5002 | SVD Execution Time -----------------------------
+# -- @head: MECAI | MAI5002 | SVD Runtime --------------------------------------
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
@@ -13,11 +13,10 @@ cat("\014")
 # -- Variable ------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-INPUT.PATH <- "../data/input/"
-INPUT.FILE <- "svd_runtime.matlab.csv"
+OUTPUT.FILE.NAME <- "svd_runtime_jacobi"
 
 OUTPUT.PATH <- "../data/output/"
-OUTPUT.FILE <- "svd_runtime.png"
+OUTPUT.FILE <- paste0(OUTPUT.FILE.NAME,".csv")
 
 # ------------------------------------------------------------------------------
 # -- Library -------------------------------------------------------------------
@@ -25,24 +24,18 @@ OUTPUT.FILE <- "svd_runtime.png"
 
 source("svd.R")
 
-if (!require("ggplot2")) {
-  
-  install.packages("ggplot2");
-  library("ggplot2");
-}
-
 # ------------------------------------------------------------------------------
 # -- Main ----------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-set.seed(123)
+set.seed(321)
+
+matrix.size <- seq(from = 10, to = 1000, by = 10);
+svd.runtime <- matrix(0, nrow = length(matrix.size), ncol = 2);
 
 # ----------------------------------------
 # -- Runtime -----------------------------
 # ----------------------------------------
-
-matrix.size <- seq(from = 5, to = 100, by = 5);
-svd.runtime <- matrix(0, nrow = length(matrix.size), ncol = 2);
 
 for (i in 1:length(matrix.size)) {
   
@@ -50,9 +43,11 @@ for (i in 1:length(matrix.size)) {
   
   for (j in 1:10) {
     
-    random.matrix <- replicate(matrix.size[i], rnorm(matrix.size[i]));
+    print(paste0(i, paste0(" | Matrix size = ", paste0(matrix.size[i], paste0(" | Repetition = ", j)))));
+    
+    random.matrix <- cov(replicate(matrix.size[i], rnorm(matrix.size[i])));
     runtime.start <- Sys.time();
-    SVD(cov(random.matrix), 1.e-5);
+    SVD.Jacobi(random.matrix, 1.e-5);
     svd.runtime[i,2] <- svd.runtime[i,2] + as.numeric(difftime(time1 = Sys.time(), time2 = runtime.start, units = "secs"));
     
   }
@@ -61,4 +56,4 @@ for (i in 1:length(matrix.size)) {
   
 }
 
-colnames(svd.runtime) <- c("size","runtime");
+write.csv(x = svd.runtime,file = file.path(OUTPUT.PATH,OUTPUT.FILE));
