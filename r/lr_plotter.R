@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# -- @head: MECAI | MAI5002 | Compare Logistic Regression RMSE -----------------
+# -- @head: MECAI | MAI5002 | Compare PCA and LLS with Logistic Regression -----
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
@@ -13,8 +13,7 @@ cat("\014")
 # -- Variable ------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-#INPUT.FILE.NAME <- "dataset_lls_rmse"
-INPUT.FILE.NAME <- "dataset_pca_rmse"
+INPUT.FILE.NAME <- "rmse"
 
 INPUT.PATH <- "../data/input/"
 INPUT.FILE <- paste0(INPUT.FILE.NAME,".csv")
@@ -49,10 +48,10 @@ data <- read.csv(file.path(INPUT.PATH,INPUT.FILE));
 ggplot(data = as.data.frame(data), aes(x = cpv, y = value, col = dataset)) +
 geom_point(size=3) + 
 geom_line(size=1) + 
-labs(title = "Principal Component Analysis | Logistic Regression", subtitle = "Datasets RMSE relative difference from RMSE with CPV = 100%", y="RMSE difference (%)", x="Explained Variance (%)") +
+labs(title = "Comparing PCA and LLS with Logistic Regression", subtitle = "RMSE difference between PCA with different CPV and LLS ", y="RMSE difference (%)", x="Explained Variance (%)") +
 scale_colour_manual(values=c('#8c43d6','#b1d643','#d64343','#d643d6','#42B3D5')) +
 theme_minimal() +
 theme(legend.position="bottom") +
-theme(legend.title=element_blank()) +
+theme(legend.title=element_blank()) #+
 ggsave(paste0(OUTPUT.PATH,OUTPUT.FILE),width = 5,height = 5);
   
